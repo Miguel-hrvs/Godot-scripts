@@ -1,0 +1,70 @@
+extends CharacterBody2D
+
+const SPEED : int = 70
+const JUMP_VELOCITY : int = -300
+var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
+
+@onready var animated_sprite = $AnimatedSprite2D
+var last_direction : Vector2i = Vector2i.RIGHT  # Default facing right
+var last_pressed_action : String = ""  # Track the current movement state
+
+func _physics_process(delta : float) -> void:
+	var input_vector : Vector2 = Vector2.ZERO  # Using Vector2 for smooth movement
+	
+	# Apply gravity
+	if not is_on_floor():
+		velocity.y += gravity * delta
+
+	# Handle jump
+	if Input.is_action_just_pressed("jump") and is_on_floor():
+		velocity.y = JUMP_VELOCITY
+	
+	# Handle movement input
+	input_vector.x = Input.get_axis("left", "right")  # Returns -1, 0, or 1 automatically
+	if Input.is_action_pressed("up"):
+		input_vector.y = -1  # Up is negative Y in Godot
+	
+	# Normalize diagonal movement to prevent faster diagonal speed
+	if input_vector.length() > 0:
+		input_vector = input_vector.normalized()
+	
+	# Determine movement state for animations
+	if input_vector != Vector2.ZERO:
+		if input_vector.y < 0:  # Up is pressed
+			if input_vector.x > 0:
+				last_pressed_action = "right-up"
+				last_direction = Vector2i.RIGHT
+			elif input_vector.x < 0:
+				last_pressed_action = "left-up"
+				last_direction = Vector2i.LEFT
+			else:
+				last_pressed_action = "up"
+		else:
+			if input_vector.x > 0:
+				last_pressed_action = "right"
+				last_direction = Vector2i.RIGHT
+			elif input_vector.x < 0:
+				last_pressed_action = "left"
+				last_direction = Vector2i.LEFT
+	else:
+		last_pressed_action = ""
+
+	# Handle animations
+	if input_vector != Vector2.ZERO:
+		match last_pressed_action:
+			"right", "left":
+				animated_sprite.play("walking")
+			"right-up", "left-up":
+				animated_sprite.play("walking_looking_up")
+			"up":
+				animated_sprite.play("looking_up")
+	else:
+		match last_pressed_action:
+			"up":
+				animated_sprite.play("looking_up")
+			_:
+				animated_sprite.play("idle")
+	
+	# Apply horizontal movement (vertical is handled by jump/gravity)
+	velocity.x = input_vector.x * SPEED
+	move_and_slide()
