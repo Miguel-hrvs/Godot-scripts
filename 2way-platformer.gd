@@ -6,12 +6,13 @@ const JUMP_VELOCITY : int = -300;
 @onready var animated_sprite = $AnimatedSprite2D;  # Get player animations
 var last_direction : Vector2i = Vector2i.RIGHT;  # Default facing right
 var last_pressed_action : String = ""; # Default no key pressed
+var gravity = ProjectSettings.get_setting("physics/2d/default_gravity");
 
 func _physics_process(delta : float) -> void:
 	var input_vector : Vector2i = Vector2i.ZERO; # Start with no default input
 	
 	# Add the gravity.
-	if not is_on_floor() : velocity += get_gravity() * delta;
+	if not is_on_floor() : velocity.y += gravity * delta;
 
 	# Handle jump.
 	if Input.is_action_just_pressed("jump") and is_on_floor() : velocity.y = JUMP_VELOCITY;
