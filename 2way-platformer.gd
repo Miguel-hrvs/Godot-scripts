@@ -28,6 +28,10 @@ func _physics_process(delta : float) -> void:
 			last_pressed_action = "left";
 		elif Input.is_action_pressed("right") and !Input.is_action_pressed("left") and Input.is_action_pressed("up") and !Input.is_action_pressed("jump"):
 			last_pressed_action = "right-up";
+		elif Input.is_action_just_pressed("right") and Input.is_action_pressed("left") and Input.is_action_pressed("up") and !Input.is_action_pressed("jump"):
+			last_pressed_action = "right-up";
+		elif Input.is_action_just_pressed("left") and Input.is_action_pressed("left") and Input.is_action_pressed("up") and !Input.is_action_pressed("jump"):
+			last_pressed_action = "left-up";
 		elif Input.is_action_pressed("left") and !Input.is_action_pressed("right") and Input.is_action_pressed("up") and !Input.is_action_pressed("jump"):
 			last_pressed_action = "left-up";
 		elif Input.is_action_pressed("up") and !Input.is_action_pressed("left") and !Input.is_action_pressed("right") and !Input.is_action_pressed("jump"):
@@ -43,14 +47,14 @@ func _physics_process(delta : float) -> void:
 	
 	# Get the desired input direction
 	match last_pressed_action:
-		"right", "right-up", "right-jump", "right-up-jump": input_vector.x = 1;
-		"left", "left-up", "left-jump", "left-up-jump": input_vector.x = -1;
+		"right", "right-up", "right-jump", "right-up-jump": input_vector.x = 1; animated_sprite.flip_h = false;
+		"left", "left-up", "left-jump", "left-up-jump": input_vector.x = -1; animated_sprite.flip_h = true;
 		"up" : input_vector.x = 0;
 	
 	# Handle animations
 	if input_vector != Vector2i.ZERO: # Player is moving
 		match last_pressed_action: 
-			"right", "left" : animated_sprite.play("walking");
+			"right", "left": animated_sprite.play("walking");
 			"right-up", "left-up": animated_sprite.play("walking_looking_up");
 			"up", "jump", "right-jump", "left-jump": animated_sprite.play("looking_up");
 	else: # Player isn't moving
